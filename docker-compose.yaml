@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -25,11 +25,19 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    volumes:
+      - ./recipes.csv:/app/recipes.csv:ro
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_EMBEDDING_MODEL: ${GEMINI_EMBEDDING_MODEL}
+      GEMINI_CHAT_MODEL: ${GEMINI_CHAT_MODEL}
+      RAG_CSV_PATH: /app/recipes.csv
+      RAG_BATCH_LIMIT: ${RAG_BATCH_LIMIT}
+      RAG_RATE_DELAY_MS: ${RAG_RATE_DELAY_MS}
       JAVA_TOOL_OPTIONS: >-
         -XX:+UseContainerSupport
         -XX:MaxRAMPercentage=75.0

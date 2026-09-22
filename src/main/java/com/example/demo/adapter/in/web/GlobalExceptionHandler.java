@@ -4,6 +4,9 @@ import com.example.demo.adapter.in.web.dto.ErrorResponse;
 import com.example.demo.domain.exception.BusinessException;
 import com.example.demo.domain.exception.DomainException;
 import com.example.demo.domain.exception.ResourceNotFoundException;
+import com.example.demo.rag.client.exception.GeminiApiException;
+import com.example.demo.rag.client.exception.GeminiRateLimitException;
+import com.example.demo.rag.client.exception.GeminiTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +31,42 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(GeminiRateLimitException.class)
+    public ResponseEntity<ErrorResponse> handleGeminiRateLimitException(GeminiRateLimitException ex, HttpServletRequest request) {
+        log.warn("Gemini rate limit exceeded: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.TOO_MANY_REQUESTS.value(),
+                HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(errorResponse);
+    }
+
+    @ExceptionHandler(GeminiTimeoutException.class)
+    public ResponseEntity<ErrorResponse> handleGeminiTimeoutException(GeminiTimeoutException ex, HttpServletRequest request) {
+        log.warn("Gemini API timeout: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.GATEWAY_TIMEOUT.value(),
+                HttpStatus.GATEWAY_TIMEOUT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(errorResponse);
+    }
+
+    @ExceptionHandler(GeminiApiException.class)
+    public ResponseEntity<ErrorResponse> handleGeminiApiException(GeminiApiException ex, HttpServletRequest request) {
+        log.error("Gemini API error: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_GATEWAY.value(),
+                HttpStatus.BAD_GATEWAY.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {

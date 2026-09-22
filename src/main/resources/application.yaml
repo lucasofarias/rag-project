@@ -11,10 +11,16 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: false
+
+  sql:
+    init:
+      mode: always
 
 management:
   endpoints:
@@ -26,3 +32,16 @@ management:
       show-details: when-authorized
       probes:
         enabled: true
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+    base-url: ${GEMINI_BASE_URL}
+    embedding-model: ${GEMINI_EMBEDDING_MODEL}
+    chat-model: ${GEMINI_CHAT_MODEL}
+
+rag:
+  ingestion:
+    csv-path: ${RAG_CSV_PATH:recipes.csv}
+    batch-limit: ${RAG_BATCH_LIMIT:100} # Limite inicial para testes no Free Tier
+    rate-delay-ms: ${RAG_RATE_DELAY_MS:2000} # Intervalo para evitar erro 429
